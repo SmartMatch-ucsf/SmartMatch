@@ -2,6 +2,7 @@ import pickle
 import numpy as np
 import pandas as pd
 from xgboost import XGBClassifier
+from sklearn.metrics import precision_recall_curve
 rae_folder = 'O:' 
 model_name = 'old'
 from hipac_ml_msbos.hipac_modeling_tools_old import (
