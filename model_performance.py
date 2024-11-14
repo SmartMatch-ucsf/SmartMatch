@@ -15,7 +15,7 @@ from hipac_ml_msbos.hipac_modeling_tools_old import (
  
 # %% # Load the model and data
 rae_folder = 'O:'
-with open(f"{rae_folder}/Models/elective_only_20230828.pkl", 'rb') as f:
+with open("paper_model.pkl", 'rb') as f:
     gbm, feature_transformer, rbc_threshold = pickle.load(f)
 with open(f"{rae_folder}/Data/20230828/train_test_elective_only.pkl", 'rb') as f:
     X_train, y_train, X_valid, y_valid, X_test, y_test = pickle.load(f)
@@ -241,11 +241,12 @@ plt.show()
 
 # %% performance metrics
 # re-transform data 
-with open(f"{rae_folder}/Models/elective_only_20230828.pkl", 'rb') as f:
+with open("paper_model.pkl", 'rb') as f:
     gbm, feature_transformer, rbc_threshold = pickle.load(f)
 with open(f"{rae_folder}/Data/20230828/train_test_elective_only.pkl", 'rb') as f:
     X_train, y_train, X_valid, y_valid, X_test, y_test = pickle.load(f) 
-
+ 
+# valid 
 y_valid.reset_index(drop=True, inplace=True)
 X_valid.reset_index(drop=True, inplace=True)
 X_valid_original = X_valid.copy()
@@ -254,8 +255,25 @@ y_valid['prediction_prob'] = gbm.predict_proba(X_valid)[:, 1]
 y_valid['target'] = y_valid['periop_prbc_units_transfused'].fillna(0) > 0
 y_valid['prediction'] = y_valid['prediction_prob'] > rbc_threshold
 
+# test
+y_test.reset_index(drop=True, inplace=True)
+X_test.reset_index(drop=True, inplace=True)
+X_test_original = X_test.copy()
+X_test = feature_transformer.transform(X_test)[feature_transformer.features]
+y_test['prediction_prob'] = gbm.predict_proba(X_test)[:, 1]
+y_test['target'] = y_test['periop_prbc_units_transfused'].fillna(0) > 0
+y_test['prediction'] = y_test['prediction_prob'] > rbc_threshold
+
+# prosp
+y_prosp = p_df.copy()
+y_prosp['prediction_prob'] = p_df['an_hour_before_max_score']
+y_prosp['target'] = p_df['outcome'].fillna(0) > 0  
+y_prosp['prediction'] = y_prosp['prediction_prob'] > rbc_threshold
+# Define the bootstrap_curve function
+
 # Print performan metrics with the desired sensitivity and single dataset generate performance curve (no CI)
-pprint.PrettyPrinter(width=20).pprint(stat_metrics(y_valid,'Retrospective Validation PRBC Singular Thresholds', f'Model 0628 {model_name}', 0.71,  y_valid['prediction']))
+pprint.PrettyPrinter(width=20).pprint((stat_metrics(y_test,'Retrospective Test PRBC Singular Thresholds', f'Model 0628 {model_name}',None,  y_test['prediction'])))
+pprint.PrettyPrinter(width=20).pprint((stat_metrics(y_prosp,'Prospective Test PRBC Singular Thresholds', f'Model 0628 {model_name}',None,  y_prosp['prediction'])))
 
 
- 
+  
