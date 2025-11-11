@@ -1,4 +1,4 @@
-# AI Blood SmartMatch  
+# AI Blood Smart Match  
 Code repository for the AI Blood project.
 
 ## Scripts 
